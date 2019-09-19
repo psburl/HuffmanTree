@@ -1,46 +1,47 @@
 package main
 
 import (
-	bf "bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	hfm "./huffman"
 )
 
 func main() {
 
-	function := flag.String("f", "encode", "Defines huffman function")
+	function := flag.String("m", "encode", "Defines huffman mode."+
+		" Values: [\"build-tree\", \"encode\", \"decode\"]")
+	text := flag.String("t", "", "text to be used on selected mode")
 	flag.Parse()
-
-	ioreader := bf.NewReader(os.Stdin)
+	treePath := "./tree.json"
 
 	if *function == "build-tree" {
-		fmt.Print("Enter base text: ")
-		text, _ := ioreader.ReadString('\n')
-		text = text[:len(text)-1]
-		tree := hfm.BuildTreeFromText(text)
+		tree := hfm.BuildTreeFromText(*text)
 		b, _ := json.Marshal(&tree)
 		ioutil.WriteFile("./tree.json", b, 0644)
-		fmt.Println("tree created")
+		fmt.Println("tree created on " + treePath)
 	} else if *function == "encode" {
-		fmt.Print("Enter text to encode: ")
-		text, _ := ioreader.ReadString('\n')
-		text = text[:len(text)-1]
-		b, _ := ioutil.ReadFile("./tree.json")
+		b, _ := ioutil.ReadFile(treePath)
 		var tree hfm.Tree
 		json.Unmarshal(b, &tree)
-		fmt.Println(hfm.Encode(tree, text))
+
+		if encodedText, err := hfm.Encode(tree, *text); err != nil {
+			fmt.Println("error: ", err)
+		} else {
+			fmt.Println("Encoded text: " + encodedText)
+		}
+
 	} else if *function == "decode" {
-		fmt.Print("Enter text to encode: ")
-		text, _ := ioreader.ReadString('\n')
-		text = text[:len(text)-1]
-		b, _ := ioutil.ReadFile("./tree.json")
+		b, _ := ioutil.ReadFile(treePath)
 		var tree hfm.Tree
 		json.Unmarshal(b, &tree)
-		fmt.Println(hfm.Decode(tree, text))
+
+		if decodedText, err := hfm.Decode(tree, *text); err != nil {
+			fmt.Println("error: ", err)
+		} else {
+			fmt.Println("Decoded text: " + decodedText)
+		}
 	}
 }

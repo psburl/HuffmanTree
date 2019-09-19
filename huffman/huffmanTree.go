@@ -1,16 +1,17 @@
 package huffman
 
 import (
+	"errors"
 	"sort"
 	"strings"
 )
 
-// Tree is
+// Tree is a structure that represents a huffman tree and stores the tree root node
 type Tree struct {
 	Root *Node
 }
 
-// Node is
+// Node is a structure that represents a huffman tree node and stores the node value and frenquency
 type Node struct {
 	Left      *Node
 	Right     *Node
@@ -18,42 +19,42 @@ type Node struct {
 	Frequency int
 }
 
-// Encode is
-func Encode(tree Tree, text string) string {
+// Encode is a method that encodes a string to huffman base using a given huffman tree
+func Encode(tree Tree, text string) (string, error) {
 	coding := ""
 
 	for _, char := range text {
-		encondeChar := ""
+		encodeChar := ""
 		curNode := tree.Root
 		if strings.Contains(tree.Root.Value, string(char)) == false {
-			return "Texto contém caracteres não exitentes na arvore"
+			return "", errors.New("Text contains invalid chars, char \"" + string(char) + "\" not found on huffman tree")
 		}
 		for curNode.Value != string(char) {
 			if curNode.Left == nil && curNode.Right == nil {
-				encondeChar = encondeChar + "?"
+				encodeChar = encodeChar + "?"
 				break
 			}
 			if curNode.Left != nil {
 				if strings.Contains(curNode.Left.Value, string(char)) {
 					curNode = curNode.Left
-					encondeChar = encondeChar + "0"
+					encodeChar = encodeChar + "0"
 				}
 			}
 			if curNode.Right != nil {
 				if strings.Contains(curNode.Right.Value, string(char)) {
 					curNode = curNode.Right
-					encondeChar = encondeChar + "1"
+					encodeChar = encodeChar + "1"
 				}
 			}
 		}
-		coding += encondeChar
+		coding += encodeChar
 	}
 
-	return coding
+	return coding, nil
 }
 
-// Decode is
-func Decode(tree Tree, encodedText string) string {
+// Decode is method that decodes a huffman base to string using a given huffman tree
+func Decode(tree Tree, encodedText string) (string, error) {
 
 	text := ""
 	curText := ""
@@ -71,10 +72,10 @@ func Decode(tree Tree, encodedText string) string {
 			curNode = tree.Root
 		}
 	}
-	return text
+	return text, nil
 }
 
-// BuildTreeFromText is
+// BuildTreeFromText is a methdo that build a huffman tree based on characters that exists on a given string
 func BuildTreeFromText(text string) Tree {
 
 	nodes := buildCharFrequency(text)
